@@ -12,7 +12,6 @@ sys.path.append("flight_computer")
 sys.path.append("3rdparty/gradients")
 from rv2oe import rv2oe
 from rk4 import rk4
-from rk4 import rk4_three_body
 from initialize_vehicle import initialize_vehicle
 from initialize_moon import initialize_moon
 import game_constants
