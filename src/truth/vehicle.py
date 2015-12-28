@@ -3,10 +3,9 @@ import math
 import atmosphere
 from rv2oe import rv2oe
 from rk4 import rk4
-from rk4 import rk4_three_body
 
 class vehicle(object):
-    def __init__(self, init_scenario, moon):
+    def __init__(self, init_scenario):
         self.isp = 300.0
         self.thrusting = 0
         self.dry_mass = 1000.0
@@ -34,14 +33,6 @@ class vehicle(object):
             self.r_parent = self.r
             self.v_parent = self.v
             self.parent_body = "earth"
-        elif (init_scenario == "moon"):
-            self.r = moon.r + numpy.array([moon.radius + 4000, 0])
-            self.v = moon.v 
-            self.a = numpy.array([0.0, 0.0])
-            self.a_mag = 0.0
-            self.r_parent = self.r - moon.r
-            self.v_parent = self.v 
-            self.parent_body = "moon"
         self.vr_parent = self.v_parent
         self.r_display = numpy.array([0.0, 0.0])
         self.longitude = 0
@@ -52,7 +43,7 @@ class vehicle(object):
         self.fin_delta_attitude = 0
         self.fin_angle = 0
 
-    def update(self,sim,parent_mu,sibling_mu,sibling_r,parent_radius,time,parent_omega):
+    def update(self,sim,parent_mu,parent_radius,time,parent_omega):
 
         # update vehicle atitude
         self.attitude = self.attitude + self.delta_attitude
