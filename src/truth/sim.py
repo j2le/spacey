@@ -5,7 +5,6 @@ class sim(object):
         self.dt = 1
         self.time = 0
         self.parent_body = "earth"
-        self.minor_body = "moon"
 
     def update(self):
 

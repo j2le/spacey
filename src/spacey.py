@@ -1,5 +1,6 @@
 # Import a library of functions called 'pygame'
 import pygame
+from pygame import base
 import pygame.gfxdraw
 import math
 import numpy
@@ -12,7 +13,6 @@ sys.path.append("flight_computer")
 sys.path.append("3rdparty/gradients")
 from rv2oe import rv2oe
 from rk4 import rk4
-from initialize_vehicle import initialize_vehicle
 import game_constants
 from vehicle import vehicle
 from game import game

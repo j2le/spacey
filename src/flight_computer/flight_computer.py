@@ -12,22 +12,19 @@ class flight_computer(object):
         self.traj_display_dt_max = 2000
 
         # update guidance algorithm
-        [display.r_trajectory, display.v_trajectory] = self.update_guidance(vehicle.fin_delta_attitude,vehicle.dry_mass +
-                             vehicle.dv_propellant_mass + vehicle.attitude_propellant_mass,
-                             vehicle.r_parent,vehicle.v_parent,parent.r,
-                             vehicle.period,vehicle.perigee,vehicle.altitude,
-                             display.scale,display.center_x,display.center_y,display.viewing_angle,parent.radius,parent.mu,parent.g0)
+        [display.r_trajectory, display.v_trajectory] = self.update_guidance(
+                             vehicle.dry_mass + vehicle.dv_propellant_mass + vehicle.attitude_propellant_mass,
+                             vehicle.r, vehicle.v, vehicle.period, vehicle.perigee, vehicle.altitude,
+                             display.scale, display.center_x, display.center_y, display.viewing_angle,
+                             parent.radius, parent.mu, parent.g0)
+
     # guidance algorithm for plotting points
-    def update_guidance(self, fin_delta_attitude, mass, r, v, r_parent, period, perigee, altitude, scale, center_x, center_y, viewing_angle, radius, mu, g0):
+    def update_guidance(self, mass, r, v, period, perigee, altitude, scale, center_x, center_y, viewing_angle, radius, mu, g0):
 
         # determine dt based on a period
         points = 200
         v_mag = numpy.linalg.norm(v) 
         fpa = math.atan2(v[1],v[0])
-        #if (perigee < -3000000):
-        #     iip_tof = (v_mag*math.sin(fpa) + math.sqrt(v_mag*math.sin(fpa)+2*g0*altitude))/g0
-        #     dt = iip_tof/points
-        #else:
         dt = period/points
         if (dt < 0.01):
            dt = 0.01
@@ -64,7 +61,7 @@ class flight_computer(object):
            # a_mag_aero = 0.5 * rho * self.v/numpy.linalg.norm(self.v)
            q_aero = 0.5 * rho * numpy.linalg.norm(v) * numpy.linalg.norm(v)
            drag_aero = 0.1 * 10 * q_aero
-           lift_aero = 0.1 * 10 * q_aero * math.sin(fin_delta_attitude*math.pi/180)
+           lift_aero = 0.1 * 10 * q_aero * math.sin(0/180)
            a_drag_aero = drag_aero/(mass)
            a_lift_aero = lift_aero/(mass)
            if (numpy.linalg.norm(v) > 5e-14):
@@ -76,9 +73,8 @@ class flight_computer(object):
            # =========================
 
            if (append_to_list):
-               r_tmp = r + r_parent
-               r_display[0] = r_tmp[0]*math.cos(viewing_angle) - r_tmp[1]*math.sin(viewing_angle)
-               r_display[1] = r_tmp[0]*math.sin(viewing_angle) + r_tmp[1]*math.cos(viewing_angle)
+               r_display[0] = r[0]*math.cos(viewing_angle) - r[1]*math.sin(viewing_angle)
+               r_display[1] = r[0]*math.sin(viewing_angle) + r[1]*math.cos(viewing_angle)
                r_list.append((r_display[0]/scale+center_x,r_display[1]/scale+center_y))
                if (i <= 2):
                    v_list.append((r_display[0]/scale+center_x,r_display[1]/scale+center_y))
@@ -99,10 +95,7 @@ class flight_computer(object):
            elif (fpa_rate > angle_rate_max):
               state = rk4(r, v, a, dt*angle_rate_max/fpa_rate, mu)
            else:
-              #state = rk4(r, v, a, dt, mu)
-              #state = rk4(r, v, a, dt, mu_moon)
               state = rk4(r, v, a, dt, mu)
-              #state = rk4_three_body(r, r_moon, v, a, dt, mu, mu_moon)
 
            fpa_prev = fpa
            r = state[0]

@@ -11,12 +11,10 @@ class vehicle(object):
         self.dry_mass = 1000.0
         self.dv_propellant_mass = 1000.0
         self.attitude_propellant_mass = 10.0
-        #self.thrust = 50000.0
         self.thrust = 20000.0
         self.day = 0
         self.attitude = 0.0
         self.delta_attitude = 0.0
-        # position of vehicle relative to parent
         if (init_scenario == "leo"):
             self.r = numpy.array([6778000.0, 0.0])
             self.v = numpy.array([0.0, 8000.0])
@@ -28,6 +26,14 @@ class vehicle(object):
         elif (init_scenario == "entry"):
             self.r = numpy.array([6678000.0, 0.0])
             self.v = numpy.array([-100.0, 7500.0])
+            self.a = numpy.array([0.0, 0.0])
+            self.a_mag = 0.0
+            self.r_parent = self.r
+            self.v_parent = self.v
+            self.parent_body = "earth"
+        elif (init_scenario == "launch"):
+            self.r = numpy.array([0.0, 0.0])
+            self.v = numpy.array([0.0, 0.0])
             self.a = numpy.array([0.0, 0.0])
             self.a_mag = 0.0
             self.r_parent = self.r
@@ -47,6 +53,7 @@ class vehicle(object):
 
         # update vehicle atitude
         self.attitude = self.attitude + self.delta_attitude
+
         # reentry dynamics
         # if dyanmic pressure is greater than x go to trim angle of attack 
         if (self.q_aero > 1000 and not(self.thrusting)):
@@ -63,29 +70,25 @@ class vehicle(object):
         
         # Update forces
         if (self.thrusting):
+
           # thrust is in Newtons and vehicle mass is in kg
           self.a_mag = self.thrust/(self.dry_mass + self.dv_propellant_mass + self.attitude_propellant_mass)
           self.dv_ideal = self.dv_ideal + self.a_mag * sim.dt
           dprop = sim.dt * (self.thrust / self.isp)
+
           # give infinite propellant
           if (self.dv_propellant_mass > 0):
               self.dv_propellant_mass = self.dv_propellant_mass - dprop
         else:
           self.a_mag = 0
+
         self.a[0] = self.a_mag * math.sin(self.attitude*math.pi/180)
         self.a[1] = self.a_mag * math.cos(self.attitude*math.pi/180)
 
         # update aerodynamic forces
         rho = 0
-        #if (numpy.linalg.norm(self.r_parent) - parent_radius > 200000):
-        #    rho = 0
-        #elif (numpy.linalg.norm(self.r_parent) - parent_radius < 0):
-        #    rho = atmosphere.get_density(0)
-        #else: 
-        #    rho = atmosphere.get_density(numpy.linalg.norm(self.r_parent) - parent_radius) 
 
         # compute aerodynamic drag
-        # a_mag_aero = 0.5 * rho * self.v/numpy.linalg.norm(self.v)
         self.q_aero = 0.5 * rho * numpy.linalg.norm(self.v_parent) * numpy.linalg.norm(self.v_parent)
         drag_aero = 0.1 * 10 * self.q_aero 
         lift_aero = 0.1 * 10 * self.q_aero * math.sin(self.fin_delta_attitude*math.pi/180) 
@@ -99,11 +102,9 @@ class vehicle(object):
         self.a_mag = numpy.linalg.norm(self.a) 
 
         # propagate the vehicle state
-        # this should be vehicle.propagate
         prev_r = self.r_parent
         prev_v = self.v_parent
         state = rk4(self.r_parent, self.v_parent, self.a, sim.dt, parent_mu)
-        #state = rk4_three_body(self.r_parent, sibling_r, self.v_parent, self.a, sim.dt, parent_mu, sibling_mu)
         self.r_parent = state[0]
         self.v_parent = state[1]
 
@@ -116,8 +117,7 @@ class vehicle(object):
             self.r_parent[0] = parent_radius * self.r_parent[0] / numpy.linalg.norm(self.r_parent) 
             self.r_parent[1] = parent_radius * self.r_parent[1] / numpy.linalg.norm(self.r_parent) 
             self.v_parent = numpy.array([0.0, 0.0])
-            #self.r_parent = prev_r
-            #self.v_parent = prev_v
+
         self.longitude = math.atan2(self.r_parent[1],self.r_parent[0]) + parent_omega * time
         self.horizontal_position = self.longitude*parent_radius
 
