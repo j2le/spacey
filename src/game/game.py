@@ -11,10 +11,6 @@ class game(object):
         self.mode_list = list()
         self.mode_list.append("earth_orbit")
         self.mode_list.append("earth_entry")
-        self.mode_list.append("earth_landing")
-        self.mode_list.append("earth_launch")
-        self.mode_list.append("earth_rend")
-        self.mode_list.append("moon")
         self.mode_index = 0
 
         # start clock
@@ -52,10 +48,6 @@ class game(object):
                    display.zoom_index = 5
                    display.pan_index = 1
                    display.viewing_angle_index = 1
-               elif self.mode_list[self.mode_index] == "moon":
-                   display.zoom_index = 3
-                   #display.pan_index = 1
-                   #display.viewing_angle_index = 1
 
            # space bar is for thrusting
            # vehicle update

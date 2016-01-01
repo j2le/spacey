@@ -29,8 +29,6 @@ pygame.init()
 
 # scenario
 scenario = "leo"
-#scenario = "moon"
-#scenario = "entry"
 
 # Set the height and width of the screen
 screen=pygame.display.set_mode(game_constants.size)
@@ -88,7 +86,6 @@ while game.done==False:
 
     # Do guidance
     # Heads up display
-    #r_list = guidance(vehicle.r,vehicle.v,vehicle.period,display.scale,display.center_x,display.center_y)
     flight_computer.update(vehicle,display,parent_body)
 
     # update the display information

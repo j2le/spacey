@@ -11,27 +11,20 @@ class display(object):
         self.zoom_list = list()
         self.max_zoom_rate = 1000
         self.zoom_list.append("to_orbit")
-        self.zoom_list.append("to_soi_earth")
         self.zoom_list.append("to_radius")
         self.zoom_list.append("to_altitude")
-        self.zoom_list.append("hand_zoom_in")
-        self.zoom_list.append("click_zoom_out")
-        self.zoom_list.append("click_zoom_in")
         self.zoom_index = 0
 
         # Initialize pan options
         self.pan_list = list()
         self.pan_list.append("home")
         self.pan_list.append("vehicle")
-        self.pan_list.append("hand_pan")
         self.pan_index = 0
 
         # Initialize viewing angle options
         self.viewing_angle_list = list()
         self.viewing_angle_list.append("home")
         self.viewing_angle_list.append("lvlh")
-        self.viewing_angle_list.append("increment")
-        self.viewing_angle_list.append("freeze")
         self.viewing_angle_index = 0
 
         # zoom scaling
@@ -141,10 +134,6 @@ class display(object):
 
         if self.viewing_angle_list[self.viewing_angle_index] == "home":
            self.viewing_angle = self.original_viewing_angle
-        elif self.viewing_angle_list[self.viewing_angle_index] == "increment":
-           self.viewing_angle = self.viewing_angle + 0.01
-        elif self.viewing_angle_list[self.viewing_angle_index] == "freeze":
-           self.viewing_angle = self.viewing_angle
         elif self.viewing_angle_list[self.viewing_angle_index] == "lvlh":
            self.viewing_angle = math.atan2(vehicle.r[0],vehicle.r[1]) + math.pi
 
@@ -159,22 +148,11 @@ class display(object):
            r_display[1] = vehicle.r[0]*math.sin(self.viewing_angle) + vehicle.r[1]*math.cos(self.viewing_angle) 
            self.center_x_new = -r_display[0]/self.scale + self.original_center_x
            self.center_y_new = -r_display[1]/self.scale + self.original_center_y
-        elif self.pan_list[self.pan_index] == "hand_pan":
-           self.center_x_new = self.prev_center_x + self.delta_pan_0
-           self.center_y_new = self.prev_center_y + self.delta_pan_1
         length = math.sqrt((self.prev_center_x - self.center_x_new)**2 +
                       (self.prev_center_y - self.center_y_new)**2)
     
-        if self.pan_list[self.pan_index] != "hand_pan":
-            if (length > self.max_dist):
-                self.center_x = self.prev_center_x + self.max_dist * (self.center_x_new - self.prev_center_x)/length
-                self.center_y = self.prev_center_y + self.max_dist * (self.center_y_new - self.prev_center_y)/length 
-            else:
-                self.center_x = self.center_x_new
-                self.center_y = self.center_y_new
-        else:
-            self.center_x = self.center_x_new
-            self.center_y = self.center_y_new
+        self.center_x = self.center_x_new
+        self.center_y = self.center_y_new
     
         self.prev_center_x = self.center_x
         self.prev_center_y = self.center_y
@@ -189,15 +167,6 @@ class display(object):
 
     def update_zoom(self,earth,vehicle):
 
-        # throttle zoom scaling of the display such that
-        # zooming is not too crazy
-        #if (self.prev_scale-self.scale < 0) and \
-        #   ( abs (self.prev_scale-self.scale) / self.scale > 0.01):
-        #       self.scale = self.prev_scale + 0.01 * self.scale
-        #elif (self.prev_scale-self.scale < 0) and \
-        #   ( abs (self.prev_scale-self.scale) / self.scale > 0.1):
-        #       self.scale = self.prev_scale - 0.05 * self.scale
-
         if self.zoom_list[self.zoom_index] == "to_orbit":
            if vehicle.ra < 0:
               self.scale = earth.r_soi/125
@@ -205,16 +174,9 @@ class display(object):
               self.scale = vehicle.ra/125
            else:
               self.scale = earth.r_soi/125
-        elif self.zoom_list[self.zoom_index] == "to_soi_earth":
-            self.scale = earth.r_soi/125
         elif self.zoom_list[self.zoom_index] == "to_radius":
             self.scale = numpy.linalg.norm(vehicle.r)/125
         elif self.zoom_list[self.zoom_index] == "to_altitude":
-            #min_alt = 10000
-            #if ((numpy.linalg.norm(vehicle.r)-earth.radius)/self.scale < min_alt):
-            #    self.scale = (numpy.linalg.norm(vehicle.r)-earth.radius)/125
-            #else:
-            #    self.scale = 10000/125
             self.scale = max(1000,(numpy.linalg.norm(vehicle.r)-earth.radius))/125
 
         self.prev_scale = self.scale
@@ -228,13 +190,6 @@ class display(object):
     def draw_earth(self,screen,earth,vehicle,game_constants):
 
         # draw the atmosphere
-        # fancy atmosphere that is super slow during entry, so can't use it
-        #scol   = (0,255,255,255)
-        #ecol   = (20,0,30,255)
-        #earth_atmos_radius = earth.radius+earth.atmosphere_height
-        #screen.blit(gradients.radial(max(int((earth_atmos_radius)/self.scale),1), scol, ecol), 
-        #            (self.center_r[0]-earth_atmos_radius/self.scale,self.center_r[1]-earth_atmos_radius/self.scale))
-        #pygame.draw.ellipse(screen,line_color,box_dimensions,line_thickness)
         if self.scale > 250:
             for i in range(20):
                 j = 20 - i
@@ -260,18 +215,6 @@ class display(object):
         else:
             # draw horizon
             self.draw_horizon(vehicle,earth,screen,game_constants)
-
-        # draw surface features, starting with line for Prime Meridian
-        if self.scale > 250:
-            pygame.draw.line(screen,game_constants.green,self.center_r,
-                        (earth.radius*math.cos(earth.angle+self.viewing_angle)/self.scale+self.center_r[0],
-                        earth.radius*math.sin(earth.angle+self.viewing_angle)/self.scale+self.center_r[1]),
-                        1)
-            pygame.draw.line(screen,game_constants.red,self.center_r,
-                        (earth.radius*math.cos(earth.angle+0.17+self.viewing_angle)/self.scale+self.center_r[0],
-                        earth.radius*math.sin(earth.angle+0.17+self.viewing_angle)/self.scale+self.center_r[1]),
-                        1)
-
 
     def draw_vehicle(self,screen,vehicle,game_constants):
 
@@ -305,17 +248,11 @@ class display(object):
 
             pygame.draw.polygon(surf,game_constants.dark_red,thrust_list,0)
 
-            #s = pygame.Surface((800, 600))
-            #r = pygame.Rect(10, 10, 10, 10)
-            #s.set_clip(r)
-            #r.move_ip(10, 0)
-            #s.set_clip(None)
-
         pygame.draw.line(surf,game_constants.blue, (50,50),(50,80),2)
         pygame.draw.line(surf,game_constants.green, (50,50),(80,50),2)
         pygame.draw.line(surf,game_constants.gold, (45,40),(40,30),3)
-        #vel_mag = numpy.linalg.norm(vehicle.v) 
-        #pygame.draw.line(surf,game_constants.magenta, (50,50),(50+30*vehicle.v[0]/vel_mag,50+30*vehicle.v[1]/vel_mag),2)
+        vel_mag = numpy.linalg.norm(vehicle.v) 
+        pygame.draw.line(surf,game_constants.magenta, (50,50),(50+30*vehicle.v[0]/vel_mag,50+30*vehicle.v[1]/vel_mag),2)
 
         #rotate surf by DEGREE amount degrees
         rotatedSurf = pygame.transform.rotate(surf, vehicle.attitude-self.viewing_angle*180/math.pi)
@@ -448,25 +385,13 @@ class display(object):
             pygame.draw.polygon(screen,[0,255,min(255,max(0,int(alt*self.scale/200))),50],mountain_2,0)
             pygame.draw.polygon(screen,[0,255,min(255,max(0,int(alt*self.scale/200))),50],mountain_3,0)
             pygame.draw.polygon(screen,[0,255,min(255,max(0,int(alt*self.scale/200))),50],mountain_4,0)
-            #pygame.draw.polygon(screen,[0,255,min(255,max(0,int(alt*self.scale/200))),50],mountain_5,0)
-            #pygame.draw.polygon(screen,[0,255,min(255,max(0,int(alt*self.scale/200))),50],mountain_6,0)
-            #pygame.draw.polygon(screen,[0,255,min(255,max(0,int(alt*self.scale/200))),50],mountain_7,0)
-            #pygame.draw.polygon(screen,[0,255,min(255,max(0,int(alt*self.scale/200))),50],mountain_8,0)
-            #pygame.draw.polygon(screen,[0,255,min(255,max(0,int(alt*self.scale/200))),50],mountain_9,0)
-            #pygame.draw.polygon(screen,[0,255,min(255,max(0,int(alt*self.scale/200))),50],mountain_10,0)
 
             ocean = ( (10000, alt+vehicle.r_display[1]), (-10000, alt+vehicle.r_display[1]), (-10000, 10000), (10000, 10000) )
             pygame.draw.polygon(screen,game_constants.dark_blue,ocean,0)
 
-            
-            #mountain_height = 10000/self.scale
-            #mountain_location = (-vehicle.horizontal_position + 0) / self.scale
-            #mountain_width = 10000/self.scale
-            #mountain_asymmetry = 0/self.scale
-
-
-
     def draw_text(self,screen,sim,game,vehicle,earth,game_constants):
+
+        debug = False
 
         # Giant set of stuff used for displaying
         day = sim.time/86400.0
@@ -491,20 +416,24 @@ class display(object):
         time_zoom = sim.dt * game.dt_zoom_ratio / game.frame_rate
         output_string = "time zoom ratio (real:game): %03d:1" % (time_zoom)
         text = game.font.render(output_string,True,game_constants.white)
-        screen.blit(text, [300,70])
+        if (debug):
+            screen.blit(text, [300,70])
         output_string = "dt %f" % (sim.dt*game.dt_zoom_ratio)
         text = game.font.render(output_string,True,game_constants.white)
-        screen.blit(text, [300,110])
+        if (debug):
+            screen.blit(text, [300,110])
         output_string = "dt_real_time %f" % game.delta_real_time
         text = game.font.render(output_string,True,game_constants.white)
-        screen.blit(text, [300,130])
+        if (debug):
+            screen.blit(text, [300,130])
         output_string = "for_loop %d" % game.dt_zoom_ratio 
         text = game.font.render(output_string,True,game_constants.white)
-        screen.blit(text, [300,150])
+        if (debug):
+            screen.blit(text, [300,150])
 
         # print out acceleration
         current_g = vehicle.a_mag/earth.g0
-        output_string = "accel %f Earth g's" % current_g
+        output_string = "accel %f g" % current_g
         text = game.font.render(output_string,True,game_constants.white)
         screen.blit(text, [300,170])
 
@@ -517,7 +446,8 @@ class display(object):
         alt_km = numpy.linalg.norm(vehicle.r)/1000.0 - earth.radius/1000.0
         output_string = "altitude %10.1f km" % alt_km
         text = game.font.render(output_string,True,game_constants.white)
-        screen.blit(text, [300,210])
+        if (debug):
+            screen.blit(text, [300,210])
 
         # print out perigee
         perigee_km = vehicle.rp/1000.0 - 6378.0
@@ -535,22 +465,26 @@ class display(object):
         longitude_deg = vehicle.longitude * 180.0/math.pi
         output_string = "longitude %f deg" % longitude_deg 
         text = game.font.render(output_string,True,game_constants.white)
-        screen.blit(text, [300,270])
+        if (debug):
+            screen.blit(text, [300,270])
 
         # propellant mass
         output_string = "propellant mass %d kg" % vehicle.dv_propellant_mass
         text = game.font.render(output_string,True,game_constants.white)
-        screen.blit(text, [300,290])
+        if (debug):
+            screen.blit(text, [300,290])
 
         # ideal dv
         output_string = "dv ideal %d m/s" % vehicle.dv_ideal
         text = game.font.render(output_string,True,game_constants.white)
-        screen.blit(text, [300,310])
+        if (debug):
+            screen.blit(text, [300,310])
 
         # zoom in
         output_string = self.zoom_list[self.zoom_index]
         text = game.font.render(output_string,True,game_constants.white)
-        screen.blit(text, [300,330])
+        if (debug):
+            screen.blit(text, [300,330])
 
         # screen center options
         output_string_1 = "%d: " % self.center_x
@@ -558,57 +492,68 @@ class display(object):
         output_string_3 = "%d: " % self.scale
         output_string_4 = "%s: " % self.pan_list[self.pan_index]
         text = game.font.render(output_string_1 + output_string_2 + output_string_3 + output_string_4,True,game_constants.white)
-        screen.blit(text, [300,350])
+        if (debug):
+            screen.blit(text, [300,350])
 
         # zoom in
         output_string = self.viewing_angle_list[self.viewing_angle_index]
         text = game.font.render(output_string,True,game_constants.white)
-        screen.blit(text, [300,370])
+        if (debug):
+            screen.blit(text, [300,370])
 
         # zoom in
         output_string = "%s: " % game.mode_list[game.mode_index]
         text = game.font.render(output_string,True,game_constants.white)
-        screen.blit(text, [300,390])
+        if (debug):
+            screen.blit(text, [300,390])
 
         # legend
         display_line = 410
         output_string = "space bar to thrust"
         text = game.font.render(output_string,True,game_constants.white)
-        screen.blit(text, [300,display_line])
-        display_line = display_line + 20
+        if (debug):
+            screen.blit(text, [300,display_line])
+            display_line = display_line + 20
 
         output_string = "right arrow to rotate to the right"
         text = game.font.render(output_string,True,game_constants.white)
-        screen.blit(text, [300,display_line])
-        display_line = display_line + 20
+        if (debug):
+            screen.blit(text, [300,display_line])
+            display_line = display_line + 20
 
         output_string = "left arrow to rotate to the left"
         text = game.font.render(output_string,True,game_constants.white)
-        screen.blit(text, [300,display_line])
-        display_line = display_line + 20
+        if (debug):
+            screen.blit(text, [300,display_line])
+            display_line = display_line + 20
 
         output_string = "up arrow to increase game speed"
         text = game.font.render(output_string,True,game_constants.white)
-        screen.blit(text, [300,display_line])
-        display_line = display_line + 20
+        if (debug):
+            screen.blit(text, [300,display_line])
+            display_line = display_line + 20
 
         output_string = "down arrow to decrease game speed"
         text = game.font.render(output_string,True,game_constants.white)
-        screen.blit(text, [300,display_line])
-        display_line = display_line + 20
+        if (debug):
+            screen.blit(text, [300,display_line])
+            display_line = display_line + 20
 
         output_string = "p-key to loop through pan-type list"
         text = game.font.render(output_string,True,game_constants.white)
-        screen.blit(text, [300,display_line])
-        display_line = display_line + 20
+        if (debug):
+            screen.blit(text, [300,display_line])
+            display_line = display_line + 20
 
         output_string = "v-key to loop through pan-type list"
         text = game.font.render(output_string,True,game_constants.white)
-        screen.blit(text, [300,display_line])
-        display_line = display_line + 20
+        if (debug):
+            screen.blit(text, [300,display_line])
+            display_line = display_line + 20
 
         output_string = "mouse click and hold to pan"
         text = game.font.render(output_string,True,game_constants.white)
-        screen.blit(text, [300,display_line])
-        display_line = display_line + 20
+        if (debug):
+            screen.blit(text, [300,display_line])
+            display_line = display_line + 20
 
