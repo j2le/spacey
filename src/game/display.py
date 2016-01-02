@@ -11,7 +11,6 @@ class display(object):
         self.max_zoom_rate = 10000
         self.zoom_list.append("to_orbit")
         self.zoom_list.append("to_altitude")
-        self.zoom_list.append("to_radius")
         self.zoom_index = 0
 
         # Initialize pan options
@@ -29,13 +28,14 @@ class display(object):
         # Initialize viewing angle options
         self.mode_list = list()
         self.mode_list.append("earth")
-        self.mode_list.append("lvlh")
+        self.mode_list.append("horizontal")
         self.mode_index = 0
 
         # zoom scaling
         self.scale = 100
         self.prev_scale = 100
 
+        # initialize center of display
         self.original_center_x = 325
         self.original_center_y = 200
         self.center_x = self.original_center_x 
@@ -44,40 +44,17 @@ class display(object):
         self.prev_center_x = self.center_y
         self.prev_center_y = self.center_x
 
-        self.pan_click_1_pos_0 = 0
-        self.pan_click_1_pos_1 = 0
-        self.delta_pan_0 = 0.0
-        self.delta_pan_1 = 0.0
-        self.mouse_down_pan = 0
-
-        # max slew of pan per cycle
-        self.max_dist = 10000000000000000000
-
         self.r_trajectory = list()
         self.v_trajectory = list()
 
         self.original_viewing_angle = 1.5
         self.viewing_angle = self.original_viewing_angle
 
-        if (init_scenario == "leo"):
-             game.init_mode = True
-             while not(game.mode_list[game.mode_index] == "earth_orbit"):
-                 game.mode_index = game.mode_index + 1;
-                 if game.mode_index >= len(game.mode_list):
-                     game.mode_index = game.mode_index - len(game.mode_list)
-
-        elif (init_scenario == "entry"):
-             game.init_mode = True
-             while not(game.mode_list[game.mode_index] == "earth_entry"):
-                 game.mode_index = game.mode_index + 1;
-                 if game.mode_index >= len(game.mode_list):
-                     game.mode_index = game.mode_index - len(game.mode_list)
-
         if self.mode_list[self.mode_index] == "earth":
              self.zoom_index = 0
              self.pan_index = 0
              self.pan_angle_index = 0
-        elif self.mode_list[self.mode_index] == "lvlh":
+        elif self.mode_list[self.mode_index] == "horizontal":
              self.zoom_index = 1
              self.pan_index = 1
              self.viewing_angle_index = 1
@@ -136,7 +113,7 @@ class display(object):
              self.zoom_index = 0
              self.pan_index = 0
              self.pan_angle_index = 0
-        elif self.mode_list[self.mode_index] == "lvlh":
+        elif self.mode_list[self.mode_index] == "horizontal":
              self.zoom_index = 1
              self.pan_index = 1
              self.viewing_angle_index = 1
@@ -257,7 +234,6 @@ class display(object):
             surf.set_clip(None)
             #test_surf.blit(gradients.radial(plume_diameter, scol, ecol), (50-plume_diameter, 30-plume_diameter))
             #surf.blit(test_surf.set_clip(pygame.Rect(20,20,20,20)))
-
             pygame.draw.polygon(surf,game_constants.dark_red,thrust_list,0)
 
         pygame.draw.line(surf,game_constants.blue, (50,50),(50,80),2)
@@ -312,7 +288,7 @@ class display(object):
     def draw_flight_computer(self,screen,game_constants):
 
         pygame.draw.aalines(screen, game_constants.red, False, self.r_trajectory, 1)
-        pygame.draw.aalines(screen, game_constants.magenta, False, self.v_trajectory, 1)
+        pygame.draw.aalines(screen, game_constants.red, False, self.v_trajectory, 1)
 
     def draw_horizon(self,vehicle,earth,screen,game_constants):
 
@@ -423,6 +399,12 @@ class display(object):
         # Blit to the screen
         text = game.font.render(output_string,True,game_constants.white)
         display_line = 10
+        screen.blit(text, [10,display_line])
+        display_line = display_line + 20
+
+        # Blit to the screen
+        output_string = "view zoom is %s (press z to switch)" % self.mode_list[self.mode_index]
+        text = game.font.render(output_string,True,game_constants.white)
         screen.blit(text, [10,display_line])
         display_line = display_line + 20
 

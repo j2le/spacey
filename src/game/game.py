@@ -35,20 +35,6 @@ class game(object):
            if event.key == pygame.K_n:
                sim.dt = -sim.dt
 
-           # m updates mode of game and overwrites current
-           if (event.key == pygame.K_m or self.init_mode == True):
-               self.init_mode = False
-               if self.mode_index >= len(self.mode_list):
-                   self.mode_index = self.mode_index - len(self.mode_list)
-               if self.mode_list[self.mode_index] == "earth_orbit":
-                   display.zoom_index = 0
-                   display.pan_index = 0
-                   display.pan_angle_index = 0
-               elif self.mode_list[self.mode_index] == "earth_entry":
-                   display.zoom_index = 5
-                   display.pan_index = 1
-                   display.viewing_angle_index = 1
-
            # space bar is for thrusting
            # vehicle update
            if event.key == pygame.K_SPACE:
@@ -78,28 +64,8 @@ class game(object):
                if (self.dt_zoom_ratio < 1):
                   self.dt_zoom_ratio = 1
 
-           # loop through zoom list
-           # display update
-           #if event.key == pygame.K_z:
-           #    display.zoom_index = display.zoom_index + 1;
-           #    if display.zoom_index >= len(display.zoom_list):
-           #        display.zoom_index = display.zoom_index - len(display.zoom_list)
-
-           # loop through pan list
-           # display update
-           #if event.key == pygame.K_p:
-           #    display.pan_index = display.pan_index + 1;
-           #    if display.pan_index >= len(display.pan_list):
-           #        display.pan_index = display.pan_index - len(display.pan_list)
-
-           # loop through viewing angle list
-           #if event.key == pygame.K_v:
-           #    display.viewing_angle_index = display.viewing_angle_index + 1;
-           #    if display.viewing_angle_index >= len(display.viewing_angle_list):
-           #        display.viewing_angle_index = display.viewing_angle_index - len(display.viewing_angle_list)
-
            # loop through view type
-           if event.key == pygame.K_t:
+           if event.key == pygame.K_z:
                display.mode_index = display.mode_index + 1;
                if display.mode_index >= len(display.mode_list):
                    display.mode_index = display.mode_index - len(display.mode_list)
@@ -130,32 +96,3 @@ class game(object):
            # sim update
            if event.key == pygame.K_DOWN:
                self.dt_zoom_state = "freeze"
-
-        # detect a mouse button press
-        if event.type == pygame.MOUSEBUTTONDOWN:
-
-            # get the mouse button position
-            pos = pygame.mouse.get_pos()
-
-            #print("Row:",row,"Column:",col)
-            display.pan_click_1_pos_0 = pos[0]
-            display.pan_click_1_pos_1 = pos[1]
-
-            # indicating sim is in pan mode
-            display.mouse_down_pan = 1
-
-        # detect a mouse release
-        elif event.type == pygame.MOUSEBUTTONUP:
-
-            # move sim out of pan mode 
-            display.mouse_down_pan = 0
-
-        # if panning update position let the display zero out       
-        if display.mouse_down_pan:
-            pos = pygame.mouse.get_pos()
-            display.delta_pan_0 = display.delta_pan_0 + pos[0] - display.pan_click_1_pos_0
-            display.delta_pan_1 = display.delta_pan_1 + pos[1] - display.pan_click_1_pos_1
-            display.pan_click_1_pos_0 = pos[0]
-            display.pan_click_1_pos_1 = pos[1]
-
-

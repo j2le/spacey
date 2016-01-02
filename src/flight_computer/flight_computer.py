@@ -47,7 +47,6 @@ class flight_computer(object):
            R = math.sqrt(r[0]**2 + r[1]**2)
 
            # update aerodynamic forces
-           # =========================
            a = numpy.array([0,0])
            if (R - radius > 200000):
                rho = 0
@@ -57,8 +56,8 @@ class flight_computer(object):
            else:
                rho = atmosphere.get_density(R - radius)
                dt = 3
+
            # compute aerodynamic drag
-           # a_mag_aero = 0.5 * rho * self.v/numpy.linalg.norm(self.v)
            q_aero = 0.5 * rho * numpy.linalg.norm(v) * numpy.linalg.norm(v)
            drag_aero = 0.1 * 10 * q_aero
            lift_aero = 0.1 * 10 * q_aero * math.sin(0/180)
@@ -70,7 +69,6 @@ class flight_computer(object):
                a[0] = a[0] + a_lift_aero*v[1]/numpy.linalg.norm(v)
                a[1] = a[1] - a_lift_aero*v[0]/numpy.linalg.norm(v)
                a_mag = numpy.linalg.norm(a)
-           # =========================
 
            if (append_to_list):
                r_display[0] = r[0]*math.cos(viewing_angle) - r[1]*math.sin(viewing_angle)
