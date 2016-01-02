@@ -3,7 +3,7 @@ import display
 class game(object):
     def __init__(self,pygame):
         self.done = False
-        self.dt_zoom_ratio = 10
+        self.dt_zoom_ratio = 1
         self.dt_zoom_state = "freeze"
 
         self.frame_rate = 100

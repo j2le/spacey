@@ -3,6 +3,9 @@ from pygame import font
 # Define the colors we will use in RGB format
 black = [ 20,  0,  30]
 white = [255,255,255]
+space_grey_1 = [220,200,230]
+space_grey_2 = [170,150,180]
+space_grey_3 = [120,100,130]
 grey = [100,100,100]
 green=[0,255,0]
 dark_green=[0,155,0]

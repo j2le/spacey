@@ -15,13 +15,13 @@ class display(object):
 
         # Initialize pan options
         self.pan_list = list()
-        self.pan_list.append("home")
+        self.pan_list.append("earth")
         self.pan_list.append("vehicle")
         self.pan_index = 0
 
         # Initialize viewing angle options
         self.viewing_angle_list = list()
-        self.viewing_angle_list.append("home")
+        self.viewing_angle_list.append("earth")
         self.viewing_angle_list.append("lvlh")
         self.viewing_angle_index = 0
 
@@ -112,16 +112,15 @@ class display(object):
         if self.mode_list[self.mode_index] == "earth":
              self.zoom_index = 0
              self.pan_index = 0
-             self.pan_angle_index = 0
+             self.viewing_angle_index = 0
         elif self.mode_list[self.mode_index] == "horizontal":
              self.zoom_index = 1
              self.pan_index = 1
              self.viewing_angle_index = 1
 
-
     def update_viewing_angle(self,vehicle):
 
-        if self.viewing_angle_list[self.viewing_angle_index] == "home":
+        if self.viewing_angle_list[self.viewing_angle_index] == "earth":
            self.viewing_angle = self.original_viewing_angle
         elif self.viewing_angle_list[self.viewing_angle_index] == "lvlh":
            self.viewing_angle = math.atan2(vehicle.r[0],vehicle.r[1]) + math.pi
@@ -129,7 +128,7 @@ class display(object):
     def update_pan(self,vehicle):
 
         r_display = numpy.array([0,0])
-        if self.pan_list[self.pan_index] == "home":
+        if self.pan_list[self.pan_index] == "earth":
            self.center_x_new = self.original_center_x
            self.center_y_new = self.original_center_y
         elif self.pan_list[self.pan_index] == "vehicle":
@@ -226,14 +225,18 @@ class display(object):
         # Vehicle update
         if (vehicle.thrusting):
             thrust_list = ((45,30),(55,30),(50,40))
-            scol   = (255,255,255,255)
-            ecol   = (20,0,30,255)
+            plume_param = int(random.random()*2.0+1.0) 
+            plume_param_2 = plume_param*1.5
+            plume_param_3 = plume_param*2
+            thrust_list_flame_1 = ((45-plume_param,30-plume_param*3),(55+plume_param,30-plume_param*3),(50,40))
+            thrust_list_flame_2 = ((45-plume_param_2,30-plume_param_2*3),(55+plume_param_2,30-plume_param_2*3),(50,40))
+            thrust_list_flame_3 = ((45-plume_param_3,30-plume_param_3*3),(55+plume_param_3,30-plume_param_3*3),(50,40))
             plume_diameter = int(random.random()*5+10) 
             surf.set_clip(pygame.Rect(0,0,100,30))
-            #surf.blit(gradients.radial(plume_diameter, scol, ecol), (50-plume_diameter, 30-plume_diameter)).clip
             surf.set_clip(None)
-            #test_surf.blit(gradients.radial(plume_diameter, scol, ecol), (50-plume_diameter, 30-plume_diameter))
-            #surf.blit(test_surf.set_clip(pygame.Rect(20,20,20,20)))
+            pygame.draw.polygon(surf,game_constants.space_grey_3,thrust_list_flame_3,0)
+            pygame.draw.polygon(surf,game_constants.space_grey_2,thrust_list_flame_2,0)
+            pygame.draw.polygon(surf,game_constants.space_grey_1,thrust_list_flame_1,0)
             pygame.draw.polygon(surf,game_constants.dark_red,thrust_list,0)
 
         pygame.draw.line(surf,game_constants.blue, (50,50),(50,80),2)
@@ -241,7 +244,10 @@ class display(object):
 
         # compute velocity in body frame
         v_body = numpy.array([0,0])
-        angle = vehicle.attitude*math.pi/180-self.viewing_angle+math.pi/2.0
+        if self.viewing_angle_list[self.viewing_angle_index] == "earth":
+           angle = vehicle.attitude*math.pi/180-self.viewing_angle+math.pi/2.0
+        elif self.viewing_angle_list[self.viewing_angle_index] == "lvlh":
+           angle = vehicle.attitude*math.pi/180
         v_body[0] = vehicle.v[0]*math.cos(angle) - vehicle.v[1]*math.sin(angle) 
         v_body[1] = vehicle.v[0]*math.sin(angle) + vehicle.v[1]*math.cos(angle) 
         vel_mag = numpy.linalg.norm(vehicle.v)
@@ -403,7 +409,7 @@ class display(object):
         display_line = display_line + 20
 
         # Blit to the screen
-        output_string = "view zoom is %s (press z to switch)" % self.mode_list[self.mode_index]
+        output_string = "view zoom is %s [press z to switch]" % self.mode_list[self.mode_index]
         text = game.font.render(output_string,True,game_constants.white)
         screen.blit(text, [10,display_line])
         display_line = display_line + 20
@@ -425,11 +431,11 @@ class display(object):
 
         time_zoom = sim.dt*game.dt_zoom_ratio*game.frame_rate/10
         if (time_zoom < 1):
-            output_string = "time zoom (if 1.00, game is real time, up/down to change): %-10.2f" % time_zoom
+            output_string = "time zoom [if 1.00, game is real time, up/down to change]: %-10.2f" % time_zoom
         elif (time_zoom < 10):
-            output_string = "time zoom (if 1.00, game is real time, up/down to change): %-10.1f" % time_zoom
+            output_string = "time zoom [if 1.00, game is real time, up/down to change]: %-10.1f" % time_zoom
         else:
-            output_string = "time zoom (if 1.00, game is real time, up/down to change): %-10.0f" % time_zoom
+            output_string = "time zoom [if 1.00, game is real time, up/down to change]: %-10.0f" % time_zoom
         text = game.font.render(output_string,True,game_constants.white)
         screen.blit(text, [10,display_line])
         display_line = display_line + 20
