@@ -80,23 +80,29 @@ class game(object):
 
            # loop through zoom list
            # display update
-           if event.key == pygame.K_z:
-               display.zoom_index = display.zoom_index + 1;
-               if display.zoom_index >= len(display.zoom_list):
-                   display.zoom_index = display.zoom_index - len(display.zoom_list)
+           #if event.key == pygame.K_z:
+           #    display.zoom_index = display.zoom_index + 1;
+           #    if display.zoom_index >= len(display.zoom_list):
+           #        display.zoom_index = display.zoom_index - len(display.zoom_list)
 
            # loop through pan list
            # display update
-           if event.key == pygame.K_p:
-               display.pan_index = display.pan_index + 1;
-               if display.pan_index >= len(display.pan_list):
-                   display.pan_index = display.pan_index - len(display.pan_list)
+           #if event.key == pygame.K_p:
+           #    display.pan_index = display.pan_index + 1;
+           #    if display.pan_index >= len(display.pan_list):
+           #        display.pan_index = display.pan_index - len(display.pan_list)
 
            # loop through viewing angle list
-           if event.key == pygame.K_v:
-               display.viewing_angle_index = display.viewing_angle_index + 1;
-               if display.viewing_angle_index >= len(display.viewing_angle_list):
-                   display.viewing_angle_index = display.viewing_angle_index - len(display.viewing_angle_list)
+           #if event.key == pygame.K_v:
+           #    display.viewing_angle_index = display.viewing_angle_index + 1;
+           #    if display.viewing_angle_index >= len(display.viewing_angle_list):
+           #        display.viewing_angle_index = display.viewing_angle_index - len(display.viewing_angle_list)
+
+           # loop through view type
+           if event.key == pygame.K_t:
+               display.mode_index = display.mode_index + 1;
+               if display.mode_index >= len(display.mode_list):
+                   display.mode_index = display.mode_index - len(display.mode_list)
 
         # detect a button release
         if event.type == pygame.KEYUP:

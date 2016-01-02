@@ -69,7 +69,6 @@ while game.done==False:
 
       # compute position relative to every body
       # currently inertial frame has origin at the earth
-      # check smallest sphere of influence first
       parent_body = earth
       vehicle.parent_body = "earth"
           
@@ -97,5 +96,4 @@ while game.done==False:
 # Be IDLE friendly. If you forget this line, the program will 'hang'
 # on exit.
 pygame.quit ()
-
 

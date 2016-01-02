@@ -2,17 +2,16 @@ import numpy
 import math
 import pygame
 import pygame.gfxdraw
-#import gradients
 import random
 
 class display(object):
     def __init__(self,init_scenario,game):
         # Initialize zoom options
         self.zoom_list = list()
-        self.max_zoom_rate = 1000
+        self.max_zoom_rate = 10000
         self.zoom_list.append("to_orbit")
-        self.zoom_list.append("to_radius")
         self.zoom_list.append("to_altitude")
+        self.zoom_list.append("to_radius")
         self.zoom_index = 0
 
         # Initialize pan options
@@ -27,12 +26,18 @@ class display(object):
         self.viewing_angle_list.append("lvlh")
         self.viewing_angle_index = 0
 
+        # Initialize viewing angle options
+        self.mode_list = list()
+        self.mode_list.append("earth")
+        self.mode_list.append("lvlh")
+        self.mode_index = 0
+
         # zoom scaling
         self.scale = 100
         self.prev_scale = 100
 
-        self.original_center_x = 145
-        self.original_center_y = 145
+        self.original_center_x = 325
+        self.original_center_y = 200
         self.center_x = self.original_center_x 
         self.center_y = self.original_center_y 
         self.center_r = (self.center_x, self.center_y)
@@ -68,12 +73,12 @@ class display(object):
                  if game.mode_index >= len(game.mode_list):
                      game.mode_index = game.mode_index - len(game.mode_list)
 
-        if game.mode_list[game.mode_index] == "earth_orbit":
+        if self.mode_list[self.mode_index] == "earth":
              self.zoom_index = 0
              self.pan_index = 0
              self.pan_angle_index = 0
-        elif game.mode_list[game.mode_index] == "earth_entry":
-             self.zoom_index = 5
+        elif self.mode_list[self.mode_index] == "lvlh":
+             self.zoom_index = 1
              self.pan_index = 1
              self.viewing_angle_index = 1
 
@@ -107,9 +112,6 @@ class display(object):
         # Do flight computer things
         self.draw_flight_computer(screen,game_constants)
 
-        # show arrows to other things
-        self.draw_arrow(screen,sim,game,vehicle,earth,game_constants)
-
         # draw text to the screen
         self.draw_text(screen,sim,game,vehicle,earth,game_constants)
 
@@ -129,6 +131,16 @@ class display(object):
                  sim.dt = sim.dt - 0.01
                  if sim.dt < 0.01:
                     sim.dt = 0.01
+
+        if self.mode_list[self.mode_index] == "earth":
+             self.zoom_index = 0
+             self.pan_index = 0
+             self.pan_angle_index = 0
+        elif self.mode_list[self.mode_index] == "lvlh":
+             self.zoom_index = 1
+             self.pan_index = 1
+             self.viewing_angle_index = 1
+
 
     def update_viewing_angle(self,vehicle):
 
@@ -250,9 +262,16 @@ class display(object):
 
         pygame.draw.line(surf,game_constants.blue, (50,50),(50,80),2)
         pygame.draw.line(surf,game_constants.green, (50,50),(80,50),2)
-        pygame.draw.line(surf,game_constants.gold, (45,40),(40,30),3)
-        vel_mag = numpy.linalg.norm(vehicle.v) 
-        pygame.draw.line(surf,game_constants.magenta, (50,50),(50+30*vehicle.v[0]/vel_mag,50+30*vehicle.v[1]/vel_mag),2)
+
+        # compute velocity in body frame
+        v_body = numpy.array([0,0])
+        angle = vehicle.attitude*math.pi/180-self.viewing_angle+math.pi/2.0
+        v_body[0] = vehicle.v[0]*math.cos(angle) - vehicle.v[1]*math.sin(angle) 
+        v_body[1] = vehicle.v[0]*math.sin(angle) + vehicle.v[1]*math.cos(angle) 
+        vel_mag = numpy.linalg.norm(vehicle.v)
+        # protect divide by zero
+        if (vel_mag > 10):
+           pygame.draw.line(surf,game_constants.magenta, (50,50),(50+30*v_body[0]/vel_mag,50+30*v_body[1]/vel_mag),2)
 
         #rotate surf by DEGREE amount degrees
         rotatedSurf = pygame.transform.rotate(surf, vehicle.attitude-self.viewing_angle*180/math.pi)
@@ -276,7 +295,6 @@ class display(object):
         if (fill):
             pygame.draw.ellipse(screen,fill_color,box_dimensions,0)
         pygame.draw.ellipse(screen,line_color,box_dimensions,line_thickness)
-        #pygame.gfxdraw.aaellipse(screen, box_dimensions, line_color)
 
     def draw_gradient_circle(self,screen,r,smaja,smina,line_thickness,line_color,fill,fill_color=[0,0,0]):
 
@@ -295,12 +313,6 @@ class display(object):
 
         pygame.draw.aalines(screen, game_constants.red, False, self.r_trajectory, 1)
         pygame.draw.aalines(screen, game_constants.magenta, False, self.v_trajectory, 1)
-
-    def draw_arrow(self,screen,sim,game,vehicle,earth,game_constants):
-
-        a = 1 
-        # draw arrow to ares
-        # draw velocity vector
 
     def draw_horizon(self,vehicle,earth,screen,game_constants):
 
@@ -402,7 +414,7 @@ class display(object):
         mm = minute - minute % 1
         second = (minute - mm) * 60
         ss = second - second % 1
-        output_string = "day:hr:min:sec: %03d:%02d:%02d:%02d" % (ddd,hh,mm,ss)
+        output_string = "time [day:hr:min:sec]: %03d:%02d:%02d:%02d" % (ddd,hh,mm,ss)
 
         # do not run faster than max frame rate
         game.my_clock.tick(game.frame_rate)    
@@ -410,14 +422,11 @@ class display(object):
 
         # Blit to the screen
         text = game.font.render(output_string,True,game_constants.white)
-        screen.blit(text, [300,50])
+        display_line = 10
+        screen.blit(text, [10,display_line])
+        display_line = display_line + 20
 
         # display the time zoom
-        time_zoom = sim.dt * game.dt_zoom_ratio / game.frame_rate
-        output_string = "time zoom ratio (real:game): %03d:1" % (time_zoom)
-        text = game.font.render(output_string,True,game_constants.white)
-        if (debug):
-            screen.blit(text, [300,70])
         output_string = "dt %f" % (sim.dt*game.dt_zoom_ratio)
         text = game.font.render(output_string,True,game_constants.white)
         if (debug):
@@ -426,47 +435,63 @@ class display(object):
         text = game.font.render(output_string,True,game_constants.white)
         if (debug):
             screen.blit(text, [300,130])
-        output_string = "for_loop %d" % game.dt_zoom_ratio 
+        output_string = "for_loop %-10.2f" % game.dt_zoom_ratio 
         text = game.font.render(output_string,True,game_constants.white)
         if (debug):
-            screen.blit(text, [300,150])
+           screen.blit(text, [10,display_line])
+           display_line = display_line + 20
+
+        time_zoom = sim.dt*game.dt_zoom_ratio*game.frame_rate/10
+        if (time_zoom < 1):
+            output_string = "time zoom (if 1.00, game is real time, up/down to change): %-10.2f" % time_zoom
+        elif (time_zoom < 10):
+            output_string = "time zoom (if 1.00, game is real time, up/down to change): %-10.1f" % time_zoom
+        else:
+            output_string = "time zoom (if 1.00, game is real time, up/down to change): %-10.0f" % time_zoom
+        text = game.font.render(output_string,True,game_constants.white)
+        screen.blit(text, [10,display_line])
+        display_line = display_line + 20
 
         # print out acceleration
         current_g = vehicle.a_mag/earth.g0
-        output_string = "accel %f g" % current_g
+        output_string = "acceleration [g, spacebar to thrust]: %-10.1f" % current_g
         text = game.font.render(output_string,True,game_constants.white)
-        screen.blit(text, [300,170])
+        screen.blit(text, [10,display_line])
+        display_line = display_line + 20
 
         # print out velocity
-        output_string = "velocity %d m/s" % numpy.linalg.norm(vehicle.v)
+        output_string = "velocity [m/s]: %-10.0f" % numpy.linalg.norm(vehicle.v)
         text = game.font.render(output_string,True,game_constants.white)
-        screen.blit(text, [300,190])
+        screen.blit(text, [10,display_line])
+        display_line = display_line + 20
 
         # print out altitude
         alt_km = numpy.linalg.norm(vehicle.r)/1000.0 - earth.radius/1000.0
-        output_string = "altitude %10.1f km" % alt_km
+        output_string = "altitude [km]: %-10.0f" % alt_km
         text = game.font.render(output_string,True,game_constants.white)
-        if (debug):
-            screen.blit(text, [300,210])
+        screen.blit(text, [10,display_line])
+        display_line = display_line + 20
 
         # print out perigee
         perigee_km = vehicle.rp/1000.0 - 6378.0
-        output_string = "perigee %d km" % perigee_km
+        output_string = "perigee [km]: %-10.0f" % perigee_km
         text = game.font.render(output_string,True,game_constants.white)
-        screen.blit(text, [300,230])
+        screen.blit(text, [10,display_line])
+        display_line = display_line + 20
 
         # print out apogee
         apogee_km = vehicle.ra/1000.0 - 6378.0
-        output_string = "apogee %d km" % apogee_km
+        output_string = "apogee [km]: %-10.0f" % apogee_km
         text = game.font.render(output_string,True,game_constants.white)
-        screen.blit(text, [300,250])
+        screen.blit(text, [10,display_line])
+        display_line = display_line + 20
 
         # argument of perigee
         longitude_deg = vehicle.longitude * 180.0/math.pi
         output_string = "longitude %f deg" % longitude_deg 
         text = game.font.render(output_string,True,game_constants.white)
         if (debug):
-            screen.blit(text, [300,270])
+            screen.blit(text, [300,display_line])
 
         # propellant mass
         output_string = "propellant mass %d kg" % vehicle.dv_propellant_mass

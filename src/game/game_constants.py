@@ -16,6 +16,7 @@ gold=[200,200,0]
 magenta=[255,0,255]
 
 # Set the height and width of the screen
-size=[1067,600]
+# approx golden ratio for height to width
+size=[650,400]
 
 
