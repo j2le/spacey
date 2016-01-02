@@ -87,6 +87,12 @@ class vehicle(object):
 
         # update aerodynamic forces
         rho = 0
+        if (numpy.linalg.norm(self.r_parent) - parent_radius > 200000):
+            rho = 0
+        elif (numpy.linalg.norm(self.r_parent) - parent_radius < 0):
+            rho = atmosphere.get_density(0)
+        else: 
+            rho = atmosphere.get_density(numpy.linalg.norm(self.r_parent) - parent_radius) 
 
         # compute aerodynamic drag
         self.q_aero = 0.5 * rho * numpy.linalg.norm(self.v_parent) * numpy.linalg.norm(self.v_parent)
