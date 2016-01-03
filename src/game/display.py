@@ -50,14 +50,10 @@ class display(object):
         self.original_viewing_angle = 1.5
         self.viewing_angle = self.original_viewing_angle
 
-        if self.mode_list[self.mode_index] == "earth":
-             self.zoom_index = 0
-             self.pan_index = 0
-             self.pan_angle_index = 0
-        elif self.mode_list[self.mode_index] == "horizontal":
-             self.zoom_index = 1
-             self.pan_index = 1
-             self.viewing_angle_index = 1
+        if init_scenario == "leo":
+             self.mode_index = 0
+        elif init_scenario == "launch":
+             self.mode_index = 1
 
     # update the display information
     def update(self,sim,screen,game,game_constants,earth,vehicle):
@@ -65,6 +61,10 @@ class display(object):
         # update viewing angle
         self.update_time_zoom(game,sim)
 
+        # update overall game view (ex: earth or horizontal)
+        self.update_view()
+
+        # update angle viewing vehicle from
         # update angle viewing vehicle from
         self.update_viewing_angle(vehicle)
 
@@ -94,20 +94,28 @@ class display(object):
 
     def update_time_zoom(self,game,sim):
 
+        if (sim.dt > 0):
+           sign_of_dt = 1
+        else:
+           sign_of_dt = -1
+        dt = math.fabs(sim.dt)
         if game.dt_zoom_state == "zooming_out":
-             if sim.dt >= 1.0:
+             if dt >= 1.0:
                  game.dt_zoom_ratio = game.dt_zoom_ratio + 1
-                 sim.dt = 1.0
+                 dt = 1.0
              else:
-                 sim.dt = sim.dt + 0.01
+                 dt = dt + 0.01
 
         if game.dt_zoom_state == "zooming_in":
              game.dt_zoom_ratio = game.dt_zoom_ratio - 1
              if (game.dt_zoom_ratio < 1):
                  game.dt_zoom_ratio = 1
-                 sim.dt = sim.dt - 0.01
-                 if sim.dt < 0.01:
-                    sim.dt = 0.01
+                 dt = dt - 0.01
+                 if dt < 0.01:
+                    dt = 0.01
+        sim.dt = sign_of_dt*dt
+
+    def update_view(self):
 
         if self.mode_list[self.mode_index] == "earth":
              self.zoom_index = 0
@@ -239,21 +247,22 @@ class display(object):
             pygame.draw.polygon(surf,game_constants.space_grey_1,thrust_list_flame_1,0)
             pygame.draw.polygon(surf,game_constants.dark_red,thrust_list,0)
 
-        pygame.draw.line(surf,game_constants.blue, (50,50),(50,80),2)
-        pygame.draw.line(surf,game_constants.green, (50,50),(80,50),2)
+        # draw vehicle axes
+        #pygame.draw.line(surf,game_constants.blue, (50,50),(50,80),2)
+        #pygame.draw.line(surf,game_constants.green, (50,50),(80,50),2)
 
-        # compute velocity in body frame
-        v_body = numpy.array([0,0])
-        if self.viewing_angle_list[self.viewing_angle_index] == "earth":
-           angle = vehicle.attitude*math.pi/180-self.viewing_angle+math.pi/2.0
-        elif self.viewing_angle_list[self.viewing_angle_index] == "lvlh":
-           angle = vehicle.attitude*math.pi/180
-        v_body[0] = vehicle.v[0]*math.cos(angle) - vehicle.v[1]*math.sin(angle) 
-        v_body[1] = vehicle.v[0]*math.sin(angle) + vehicle.v[1]*math.cos(angle) 
-        vel_mag = numpy.linalg.norm(vehicle.v)
-        # protect divide by zero
-        if (vel_mag > 10):
-           pygame.draw.line(surf,game_constants.magenta, (50,50),(50+30*v_body[0]/vel_mag,50+30*v_body[1]/vel_mag),2)
+        ## compute velocity in body frame
+        #v_body = numpy.array([0,0])
+        #if self.viewing_angle_list[self.viewing_angle_index] == "earth":
+        #   angle = vehicle.attitude*math.pi/180-self.viewing_angle+math.pi/2.0
+        #elif self.viewing_angle_list[self.viewing_angle_index] == "lvlh":
+        #   angle = vehicle.attitude*math.pi/180
+        #v_body[0] = vehicle.v[0]*math.cos(angle) - vehicle.v[1]*math.sin(angle) 
+        #v_body[1] = vehicle.v[0]*math.sin(angle) + vehicle.v[1]*math.cos(angle) 
+        #vel_mag = numpy.linalg.norm(vehicle.v)
+        ## protect divide by zero
+        #if (vel_mag > 10):
+        #   pygame.draw.line(surf,game_constants.magenta, (50,50),(50+30*v_body[0]/vel_mag,50+30*v_body[1]/vel_mag),2)
 
         #rotate surf by DEGREE amount degrees
         rotatedSurf = pygame.transform.rotate(surf, vehicle.attitude-self.viewing_angle*180/math.pi)
@@ -308,7 +317,11 @@ class display(object):
             alt_horizon_7 = 2*(150000/2)/self.scale
             alt_horizon_8 = 2*(175000/2)/self.scale
             alt_horizon_9 = 2*(200000/2)/self.scale
-            infinity = 10000
+            alt_sand = 2*(-5000/2)/self.scale
+            alt_tide = 2*(-6000/2)/self.scale
+            alt_tide_2 = 2*(-10000/2)/self.scale
+            alt_tide_3 = 2*(-11000/2)/self.scale
+            infinity = 2500
 
             j = 8
             sky = ( (infinity, -infinity), (-infinity, -infinity), (-infinity, infinity), (infinity, infinity) )
@@ -378,10 +391,20 @@ class display(object):
             pygame.draw.polygon(screen,[0,255,min(255,max(0,int(alt*self.scale/200))),50],mountain_1,0)
             pygame.draw.polygon(screen,[0,255,min(255,max(0,int(alt*self.scale/200))),50],mountain_2,0)
             pygame.draw.polygon(screen,[0,255,min(255,max(0,int(alt*self.scale/200))),50],mountain_3,0)
-            pygame.draw.polygon(screen,[0,255,min(255,max(0,int(alt*self.scale/200))),50],mountain_4,0)
+            pygame.draw.polygon(screen,[0,255, min(255,max(0,int(alt*self.scale/200))), 50],mountain_4,0)
 
             ocean = ( (10000, alt+vehicle.r_display[1]), (-10000, alt+vehicle.r_display[1]), (-10000, 10000), (10000, 10000) )
             pygame.draw.polygon(screen,game_constants.dark_blue,ocean,0)
+
+            tide = ( (infinity, horizon_display_y), (-infinity, horizon_display_y), (-infinity, horizon_display_y-alt_tide), (-infinity, horizon_display_y - alt_tide) )
+            tide_2 = ( (infinity, horizon_display_y-alt_tide_2), (-infinity, horizon_display_y-alt_tide_2), (-infinity, horizon_display_y-alt_tide_3), (-infinity, horizon_display_y - alt_tide_3) )
+            sand = ( (infinity, horizon_display_y), (-infinity, horizon_display_y), (-infinity, horizon_display_y-alt_sand), (-infinity, horizon_display_y - alt_sand) )
+            #sand = ( (10000, alt+vehicle.r_display[1]), (-10000, alt+vehicle.r_display[1]), (-10000, 300), (10000, 300) )
+            tide_color = [255-min(255,max(0,int(alt*self.scale/200)))  ,255-min(255,max(0,int(alt*self.scale/200)))     ,255]
+            sand_color = [175,175,min(255,max(0,int(alt*self.scale/200)))]
+            pygame.draw.polygon(screen,tide_color,tide_2,0)
+            pygame.draw.polygon(screen,tide_color,tide,0)
+            pygame.draw.polygon(screen,sand_color,sand,0)
 
     def draw_text(self,screen,sim,game,vehicle,earth,game_constants):
 
@@ -513,12 +536,6 @@ class display(object):
         text = game.font.render(output_string,True,game_constants.white)
         if (debug):
             screen.blit(text, [300,370])
-
-        # zoom in
-        output_string = "%s: " % game.mode_list[game.mode_index]
-        text = game.font.render(output_string,True,game_constants.white)
-        if (debug):
-            screen.blit(text, [300,390])
 
         # legend
         display_line = 410

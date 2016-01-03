@@ -1,17 +1,12 @@
 import numpy
 import display
 class game(object):
-    def __init__(self,pygame):
+    def __init__(self,pygame,scenario):
         self.done = False
         self.dt_zoom_ratio = 1
         self.dt_zoom_state = "freeze"
 
         self.frame_rate = 100
-        self.mode = "earth_orbit"
-        self.mode_list = list()
-        self.mode_list.append("earth_orbit")
-        self.mode_list.append("earth_entry")
-        self.mode_index = 0
 
         # start clock
         self.my_clock=pygame.time.Clock()
@@ -20,6 +15,8 @@ class game(object):
         self.font = pygame.font.Font(None, 25)
 
         self.init_mode = False
+
+        self.scenario = scenario
 
     def update_events(self,event,vehicle,display,pygame,sim):
 

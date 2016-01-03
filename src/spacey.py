@@ -28,13 +28,14 @@ import random
 pygame.init()
 
 # scenario
-scenario = "leo"
+#scenario = "leo"
+scenario = "launch"
 
 # Set the height and width of the screen
 screen=pygame.display.set_mode(game_constants.size)
 
 #Loop until the user clicks the close button.
-game = game(pygame)
+game = game(pygame,scenario)
 
 # initialize earth
 earth = earth()

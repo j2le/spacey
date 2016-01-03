@@ -17,6 +17,7 @@ cyan=[0,255,255]
 dark_blue=[0,0,155]
 gold=[200,200,0]
 magenta=[255,0,255]
+sand=[175,175,30]
 
 # Set the height and width of the screen
 # approx golden ratio for height to width

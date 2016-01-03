@@ -13,7 +13,6 @@ class vehicle(object):
         self.attitude_propellant_mass = 10.0
         self.thrust = 20000.0
         self.day = 0
-        self.attitude = 0.0
         self.delta_attitude = 0.0
         if (init_scenario == "leo"):
             self.r = numpy.array([6778000.0, 0.0])
@@ -23,6 +22,7 @@ class vehicle(object):
             self.r_parent = self.r
             self.v_parent = self.v
             self.parent_body = "earth"
+            self.attitude = 0.0
         elif (init_scenario == "entry"):
             self.r = numpy.array([6678000.0, 0.0])
             self.v = numpy.array([-100.0, 7500.0])
@@ -31,14 +31,16 @@ class vehicle(object):
             self.r_parent = self.r
             self.v_parent = self.v
             self.parent_body = "earth"
+            self.attitude = 0.0
         elif (init_scenario == "launch"):
-            self.r = numpy.array([0.0, 0.0])
+            self.r = numpy.array([6378000.0, 0.0])
             self.v = numpy.array([0.0, 0.0])
             self.a = numpy.array([0.0, 0.0])
             self.a_mag = 0.0
             self.r_parent = self.r
             self.v_parent = self.v
             self.parent_body = "earth"
+            self.attitude = 90.0
         self.vr_parent = self.v_parent
         self.r_display = numpy.array([0.0, 0.0])
         self.longitude = 0
