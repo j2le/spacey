@@ -58,18 +58,9 @@ class vehicle(object):
 
         # reentry dynamics
         # if dyanmic pressure is greater than x go to trim angle of attack 
-        if (self.q_aero > 1000 and not(self.thrusting)):
-            self.fin_delta_attitude = self.fin_delta_attitude +  self.delta_attitude
-            if (self.fin_delta_attitude > 90): 
-                self.fin_delta_attitude = 90
-            elif (self.fin_delta_attitude < 0):
-                self.fin_delta_attitude = 0
-            self.attitude = 90 - math.atan2(self.v_parent[1],self.v_parent[0]) * 180/math.pi + self.fin_delta_attitude
+        #if (self.q_aero > 1000 and not(self.thrusting)):
+        #    self.attitude = -90.0 + math.atan2(self.v_parent[1],self.v_parent[0]) * 180/math.pi
 
-        # reset q_aero
-        if (self.q_aero < 1000):
-            self.fin_delta_attitude = 45
-        
         # Update forces
         if (self.thrusting):
 
@@ -99,7 +90,8 @@ class vehicle(object):
         # compute aerodynamic drag
         self.q_aero = 0.5 * rho * numpy.linalg.norm(self.v_parent) * numpy.linalg.norm(self.v_parent)
         drag_aero = 0.1 * 10 * self.q_aero 
-        lift_aero = 0.1 * 10 * self.q_aero * math.sin(self.fin_delta_attitude*math.pi/180) 
+        #lift_aero = 0.1 * 10 * self.q_aero * math.sin(self.fin_delta_attitude*math.pi/180) 
+        lift_aero = 0.0
         a_drag_aero = drag_aero/(self.dry_mass + self.dv_propellant_mass + self.attitude_propellant_mass)
         a_lift_aero = lift_aero/(self.dry_mass + self.dv_propellant_mass + self.attitude_propellant_mass)
         if (numpy.linalg.norm(self.v_parent) > 5e-14):

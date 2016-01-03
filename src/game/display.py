@@ -173,8 +173,16 @@ class display(object):
         elif self.zoom_list[self.zoom_index] == "to_radius":
             self.scale = numpy.linalg.norm(vehicle.r)/125
         elif self.zoom_list[self.zoom_index] == "to_altitude":
-            self.scale = max(1000,(numpy.linalg.norm(vehicle.r)-earth.radius))/125
-
+            alt_length = numpy.linalg.norm(vehicle.r)-earth.radius
+            iip_length = (numpy.linalg.norm(vehicle.r - self.r_iip_final )-200000)/2
+            if numpy.linalg.norm(self.r_iip_final) > earth.radius:
+               iip_length = self.iip_length_prev
+            if (vehicle.rp + vehicle.ra > 2*earth.radius):
+               ra_length = vehicle.ra-earth.radius
+            else:
+               ra_length = 0
+            self.scale = max(1000,max(iip_length,alt_length,ra_length))/125
+            self.iip_length_prev = iip_length
         self.prev_scale = self.scale
 
     def update_bodies(self,earth,vehicle):
@@ -186,7 +194,7 @@ class display(object):
     def draw_earth(self,screen,earth,vehicle,game_constants):
 
         # draw the atmosphere
-        if self.scale > 250:
+        if self.scale > 450:
             for i in range(20):
                 j = 20 - i
                 self.draw_ellipse(screen,
@@ -199,7 +207,7 @@ class display(object):
                           [20,max(0,255-j*15),max(30,255-j*15)])
 
         # draw the earth centered at the display center
-        if self.scale > 350:
+        if self.scale > 550:
            self.draw_ellipse(screen,
                           self.center_r,
                           earth.radius/self.scale,
@@ -309,99 +317,164 @@ class display(object):
 
             alt = ( numpy.linalg.norm(vehicle.r) -earth.radius)/self.scale
             horizon_display_y = alt+vehicle.r_display[1] 
-            alt_horizon_2 = 2*(25000/2)/self.scale
-            alt_horizon_3 = 2*(50000/2)/self.scale
-            alt_horizon_4 = 2*(75000/2)/self.scale
-            alt_horizon_5 = 2*(100000/2)/self.scale
-            alt_horizon_6 = 2*(125000/2)/self.scale
-            alt_horizon_7 = 2*(150000/2)/self.scale
-            alt_horizon_8 = 2*(175000/2)/self.scale
-            alt_horizon_9 = 2*(200000/2)/self.scale
-            alt_sand = 2*(-5000/2)/self.scale
-            alt_tide = 2*(-6000/2)/self.scale
+            alt_horizon_1 = (1000/2)/self.scale
+            alt_horizon_2 = (25000/2)/self.scale
+            alt_horizon_3 = (50000/2)/self.scale
+            alt_horizon_4 = (75000/2)/self.scale
+            alt_horizon_5 = (100000/2)/self.scale
+            alt_horizon_6 = (125000/2)/self.scale
+            alt_horizon_7 = (150000/2)/self.scale
+            alt_horizon_8 = (175000/2)/self.scale
+            alt_horizon_9 = (200000/2)/self.scale
+            alt_horizon_10 = (225000/2)/self.scale
+            alt_horizon_11 = (250000/2)/self.scale
+            alt_horizon_12 = (275000/2)/self.scale
+            alt_horizon_13 = (300000/2)/self.scale
+            alt_sand = 2*(-1250/2)/self.scale
+            alt_tide = 2*(-1500/2)/self.scale
             alt_tide_2 = 2*(-10000/2)/self.scale
-            alt_tide_3 = 2*(-11000/2)/self.scale
+            alt_tide_3 = 2*(-10500/2)/self.scale
+            alt_tide_4 = 2*(-12000/2)/self.scale
+            alt_tide_5 = 2*(-12500/2)/self.scale
+            alt_tide_4 = 2*(-14000/2)/self.scale
+            alt_tide_5 = 2*(-14250/2)/self.scale
+            alt_tide_6 = 2*(-17000/2)/self.scale
+            alt_tide_7 = 2*(-17250/2)/self.scale
             infinity = 2500
 
-            j = 8
+            j = 12
             sky = ( (infinity, -infinity), (-infinity, -infinity), (-infinity, infinity), (infinity, infinity) )
             pygame.draw.polygon(screen, [20,max(0,255-j*15),max(30,255-j*15)], sky, 0)
 
+            j = 11
+            sky = ( (infinity, horizon_display_y), (-infinity, horizon_display_y), (-infinity, horizon_display_y-alt_horizon_13), (infinity, horizon_display_y - alt_horizon_13) )
+            pygame.draw.polygon(screen, [20,max(0,255-j*15),max(30,255-j*15)], sky, 0)
+
+            j = 10
+            sky = ( (infinity, horizon_display_y), (-infinity, horizon_display_y), (-infinity, horizon_display_y-alt_horizon_12), (infinity, horizon_display_y - alt_horizon_12) )
+            pygame.draw.polygon(screen, [20,max(0,255-j*15),max(30,255-j*15)], sky, 0)
+
+            j = 9
+            sky = ( (infinity, horizon_display_y), (-infinity, horizon_display_y), (-infinity, horizon_display_y-alt_horizon_11), (infinity, horizon_display_y - alt_horizon_11) )
+            pygame.draw.polygon(screen, [20,max(0,255-j*15),max(30,255-j*15)], sky, 0)
+
+            j = 8
+            sky = ( (infinity, horizon_display_y), (-infinity, horizon_display_y), (-infinity, horizon_display_y-alt_horizon_10), (infinity, horizon_display_y - alt_horizon_10) )
+            pygame.draw.polygon(screen, [20,max(0,255-j*15),max(30,255-j*15)], sky, 0)
+
             j = 7
-            sky = ( (infinity, horizon_display_y), (-infinity, horizon_display_y), (-infinity, horizon_display_y-alt_horizon_9), (-infinity, horizon_display_y - alt_horizon_9) )
+            sky = ( (infinity, horizon_display_y), (-infinity, horizon_display_y), (-infinity, horizon_display_y-alt_horizon_9), (infinity, horizon_display_y - alt_horizon_9) )
             pygame.draw.polygon(screen, [20,max(0,255-j*15),max(30,255-j*15)], sky, 0)
 
             j = 6
-            sky = ( (infinity, horizon_display_y), (-infinity, horizon_display_y), (-infinity, horizon_display_y-alt_horizon_8), (-infinity, horizon_display_y - alt_horizon_8) )
+            sky = ( (infinity, horizon_display_y), (-infinity, horizon_display_y), (-infinity, horizon_display_y-alt_horizon_8), (infinity, horizon_display_y - alt_horizon_8) )
             pygame.draw.polygon(screen, [20,max(0,255-j*15),max(30,255-j*15)], sky, 0)
 
             j = 5
-            sky = ( (infinity, horizon_display_y), (-infinity, horizon_display_y), (-infinity, horizon_display_y-alt_horizon_7), (-infinity, horizon_display_y - alt_horizon_7) )
+            sky = ( (infinity, horizon_display_y), (-infinity, horizon_display_y), (-infinity, horizon_display_y-alt_horizon_7), (infinity, horizon_display_y - alt_horizon_7) )
             pygame.draw.polygon(screen, [20,max(0,255-j*15),max(30,255-j*15)], sky, 0)
 
             j = 4
-            sky = ( (infinity, horizon_display_y), (-infinity, horizon_display_y), (-infinity, horizon_display_y-alt_horizon_6), (-infinity, horizon_display_y - alt_horizon_6) )
+            sky = ( (infinity, horizon_display_y), (-infinity, horizon_display_y), (-infinity, horizon_display_y-alt_horizon_6), (infinity, horizon_display_y - alt_horizon_6) )
             pygame.draw.polygon(screen, [20,max(0,255-j*15),max(30,255-j*15)], sky, 0)
 
             j = 3
-            sky = ( (infinity, horizon_display_y), (-infinity, horizon_display_y), (-infinity, horizon_display_y-alt_horizon_5), (-infinity, horizon_display_y - alt_horizon_5) )
+            sky = ( (infinity, horizon_display_y), (-infinity, horizon_display_y), (-infinity, horizon_display_y-alt_horizon_5), (infinity, horizon_display_y - alt_horizon_5) )
             pygame.draw.polygon(screen, [20,max(0,255-j*15),max(30,255-j*15)], sky, 0)
 
             j = 2
-            sky = ( (infinity, horizon_display_y), (-infinity, horizon_display_y), (-infinity, horizon_display_y-alt_horizon_4), (-infinity, horizon_display_y - alt_horizon_4) )
+            sky = ( (infinity, horizon_display_y), (-infinity, horizon_display_y), (-infinity, horizon_display_y-alt_horizon_4), (infinity, horizon_display_y - alt_horizon_4) )
             pygame.draw.polygon(screen, [20,max(0,255-j*15),max(30,255-j*15)], sky, 0)
 
             j = 1
-            sky = ( (infinity, horizon_display_y), (-infinity, horizon_display_y), (-infinity, horizon_display_y-alt_horizon_3), (-infinity, horizon_display_y - alt_horizon_3) )
+            sky = ( (infinity, horizon_display_y), (-infinity, horizon_display_y), (-infinity, horizon_display_y-alt_horizon_3), (infinity, horizon_display_y - alt_horizon_3) )
             pygame.draw.polygon(screen, [20,max(0,255-j*15),max(30,255-j*15)], sky, 0)
 
             j = 0
-            sky = ( (infinity, horizon_display_y), (-infinity, horizon_display_y), (-infinity, horizon_display_y-alt_horizon_2), (-infinity, horizon_display_y - alt_horizon_2) )
+            sky = ( (infinity, horizon_display_y), (-infinity, horizon_display_y), (-infinity, horizon_display_y-alt_horizon_2), (infinity, horizon_display_y - alt_horizon_2) )
             pygame.draw.polygon(screen, [20,max(0,255-j*15),max(30,255-j*15)], sky, 0)
 
+
             #for i in range(360):
-            mountain_longitude = 0
+            mountain_longitude = -0.02
             mountain_height = 5000/self.scale
-            mountain_location = ((mountain_longitude*earth.radius - vehicle.longitude *earth.radius) % 100000 - 100000/2) / self.scale + vehicle.r_display[0] 
-            mountain_width = 5000/self.scale
+            mountain_location = ((mountain_longitude*earth.radius - vehicle.longitude *earth.radius) % 400000 - 400000/2) / self.scale + vehicle.r_display[0] 
+            mountain_width = 40000/self.scale
             mountain_asymmetry = 0/self.scale
             mountain_1 = ( (mountain_location + mountain_width, horizon_display_y), (mountain_location-mountain_width, horizon_display_y), (mountain_location+mountain_asymmetry, horizon_display_y - mountain_height) )
 
             mountain_longitude = mountain_longitude + 0.01
-            mountain_location = ((mountain_longitude*earth.radius - vehicle.longitude *earth.radius) % 100000 - 100000/2) / self.scale + vehicle.r_display[0] 
+            mountain_location = ((mountain_longitude*earth.radius - vehicle.longitude *earth.radius) % 400000 - 400000/2) / self.scale + vehicle.r_display[0] 
             mountain_height = 8000/self.scale
-            mountain_width = 10000/self.scale
-            mountain_asymmetry = 2000/self.scale
+            mountain_width = 80000/self.scale
+            mountain_asymmetry = 20000/self.scale
             mountain_2 = ( (mountain_location + mountain_width, horizon_display_y), (mountain_location-mountain_width, horizon_display_y), (mountain_location+mountain_asymmetry, horizon_display_y - mountain_height) )
 
             mountain_longitude = mountain_longitude + 0.01
-            mountain_location = ((mountain_longitude*earth.radius - vehicle.longitude *earth.radius) % 100000 - 100000/2) / self.scale + vehicle.r_display[0] 
+            mountain_location = ((mountain_longitude*earth.radius - vehicle.longitude *earth.radius) % 400000 - 400000/2) / self.scale + vehicle.r_display[0] 
             mountain_height = 8000/self.scale
-            mountain_width = 5000/self.scale
-            mountain_asymmetry = -2000/self.scale
+            mountain_width = 40000/self.scale
+            mountain_asymmetry = -20000/self.scale
             mountain_3 = ( (mountain_location + mountain_width, horizon_display_y), (mountain_location-mountain_width, horizon_display_y), (mountain_location+mountain_asymmetry, horizon_display_y - mountain_height) )
 
             mountain_longitude = mountain_longitude + 0.01
-            mountain_location = ((mountain_longitude*earth.radius - vehicle.longitude *earth.radius) % 100000 - 100000/2) / self.scale + vehicle.r_display[0] 
+            mountain_location = ((mountain_longitude*earth.radius - vehicle.longitude *earth.radius) % 400000 - 400000/2) / self.scale + vehicle.r_display[0] 
             mountain_height = 2000/self.scale
-            mountain_width = 10000/self.scale
-            mountain_asymmetry = -2000/self.scale
+            mountain_width = 80000/self.scale
+            mountain_asymmetry = -20000/self.scale
             mountain_4 = ( (mountain_location + mountain_width, horizon_display_y), (mountain_location-mountain_width, horizon_display_y), (mountain_location+mountain_asymmetry, horizon_display_y - mountain_height) )
 
-            pygame.draw.polygon(screen,[0,255,min(255,max(0,int(alt*self.scale/200))),50],mountain_1,0)
-            pygame.draw.polygon(screen,[0,255,min(255,max(0,int(alt*self.scale/200))),50],mountain_2,0)
-            pygame.draw.polygon(screen,[0,255,min(255,max(0,int(alt*self.scale/200))),50],mountain_3,0)
-            pygame.draw.polygon(screen,[0,255, min(255,max(0,int(alt*self.scale/200))), 50],mountain_4,0)
+            mountain_longitude = mountain_longitude + 0.01
+            mountain_location = ((mountain_longitude*earth.radius - vehicle.longitude *earth.radius) % 400000 - 400000/2) / self.scale + vehicle.r_display[0] 
+            mountain_height = 2000/self.scale
+            mountain_width = 80000/self.scale
+            mountain_asymmetry = -20000/self.scale
+            mountain_5 = ( (mountain_location + mountain_width, horizon_display_y), (mountain_location-mountain_width, horizon_display_y), (mountain_location+mountain_asymmetry, horizon_display_y - mountain_height) )
+
+            mountain_longitude = mountain_longitude + 0.01
+            mountain_location = ((mountain_longitude*earth.radius - vehicle.longitude *earth.radius) % 400000 - 400000/2) / self.scale + vehicle.r_display[0] 
+            mountain_height = 2000/self.scale
+            mountain_width = 80000/self.scale
+            mountain_asymmetry = -20000/self.scale
+            mountain_6 = ( (mountain_location + mountain_width, horizon_display_y), (mountain_location-mountain_width, horizon_display_y), (mountain_location+mountain_asymmetry, horizon_display_y - mountain_height) )
+
+            pygame.draw.polygon(screen,[0, 155+min(100,max(0,int(alt*self.scale/125))), min(255,max(0,int(alt*self.scale/125))), 50],mountain_1,0)
+            pygame.draw.polygon(screen,[0, 155+min(100,max(0,int(alt*self.scale/125))), min(255,max(0,int(alt*self.scale/125))), 50],mountain_2,0)
+            pygame.draw.polygon(screen,[0, 155+min(100,max(0,int(alt*self.scale/125))), min(255,max(0,int(alt*self.scale/125))), 50],mountain_3,0)
+            pygame.draw.polygon(screen,[0, 155+min(100,max(0,int(alt*self.scale/125))), min(255,max(0,int(alt*self.scale/125))), 50],mountain_4,0)
+            pygame.draw.polygon(screen,[0, 155+min(100,max(0,int(alt*self.scale/125))), min(255,max(0,int(alt*self.scale/125))), 50],mountain_5,0)
+            pygame.draw.polygon(screen,[0, 155+min(100,max(0,int(alt*self.scale/125))), min(255,max(0,int(alt*self.scale/125))), 50],mountain_6,0)
+
+            # create a sine set of rolling hills
+            #sine_mountain_1 = list()
+            #sine_mountain_1.append((infinity, horizon_display_y))
+            #sine_mountain_1.append((-infinity, horizon_display_y))
+            #for z in range(100):
+            #    mountain_width = 100/self.scale
+            #    mountain_polygon = math.sin(z)
+            #    mountain_location = ((mountain_longitude*earth.radius - vehicle.longitude *earth.radius) % 10000 - 10000/2) / self.scale + vehicle.r_display[0] 
+            #    sine_mountain_1.append( (-infinity + z*mountain_width*5, horizon_display_y - 50.0*math.sin(z/10.0) - 100.0  ) )
+
+            # create a random walk set of craggy peaks
+
+
+            # create a sine wave + triangle wave of peaks
+
+            trees = ( (infinity, horizon_display_y), (-infinity, horizon_display_y), (-infinity, horizon_display_y-alt_horizon_1), (infinity, horizon_display_y - alt_horizon_1) )
+            pygame.draw.polygon(screen, game_constants.green, trees, 0)
 
             ocean = ( (10000, alt+vehicle.r_display[1]), (-10000, alt+vehicle.r_display[1]), (-10000, 10000), (10000, 10000) )
             pygame.draw.polygon(screen,game_constants.dark_blue,ocean,0)
 
-            tide = ( (infinity, horizon_display_y), (-infinity, horizon_display_y), (-infinity, horizon_display_y-alt_tide), (-infinity, horizon_display_y - alt_tide) )
-            tide_2 = ( (infinity, horizon_display_y-alt_tide_2), (-infinity, horizon_display_y-alt_tide_2), (-infinity, horizon_display_y-alt_tide_3), (-infinity, horizon_display_y - alt_tide_3) )
-            sand = ( (infinity, horizon_display_y), (-infinity, horizon_display_y), (-infinity, horizon_display_y-alt_sand), (-infinity, horizon_display_y - alt_sand) )
-            #sand = ( (10000, alt+vehicle.r_display[1]), (-10000, alt+vehicle.r_display[1]), (-10000, 300), (10000, 300) )
-            tide_color = [255-min(255,max(0,int(alt*self.scale/200)))  ,255-min(255,max(0,int(alt*self.scale/200)))     ,255]
-            sand_color = [175,175,min(255,max(0,int(alt*self.scale/200)))]
+            tide = ( (infinity, horizon_display_y), (-infinity, horizon_display_y), (-infinity, horizon_display_y-alt_tide), (infinity, horizon_display_y - alt_tide) )
+            tide_2 = ( (infinity, horizon_display_y-alt_tide_2), (-infinity, horizon_display_y-alt_tide_2), (-infinity, horizon_display_y-alt_tide_3), (infinity, horizon_display_y - alt_tide_3) )
+            tide_3 = ( (infinity, horizon_display_y-alt_tide_4), (-infinity, horizon_display_y-alt_tide_4), (-infinity, horizon_display_y-alt_tide_5), (infinity, horizon_display_y - alt_tide_5) )
+            tide_4 = ( (infinity, horizon_display_y-alt_tide_6), (-infinity, horizon_display_y-alt_tide_6), (-infinity, horizon_display_y-alt_tide_7), (infinity, horizon_display_y - alt_tide_7) )
+            sand = ( (infinity, horizon_display_y), (-infinity, horizon_display_y), (-infinity, horizon_display_y-alt_sand), (infinity, horizon_display_y - alt_sand) )
+            tide_color = [255-min(255,max(0,int(alt*self.scale/125))), 255-min(255,max(0,int(alt*self.scale/125))), 155]
+            sand_color = [175-min(175,max(0,int(alt*self.scale/125))), 175-min(175,max(0,int(alt*self.scale/125))), min(155,max(0,int(alt*self.scale/125)))]
+            pygame.draw.polygon(screen,tide_color,tide_4,0)
+            pygame.draw.polygon(screen,tide_color,tide_3,0)
             pygame.draw.polygon(screen,tide_color,tide_2,0)
             pygame.draw.polygon(screen,tide_color,tide,0)
             pygame.draw.polygon(screen,sand_color,sand,0)
@@ -434,8 +507,9 @@ class display(object):
         # Blit to the screen
         output_string = "view zoom is %s [press z to switch]" % self.mode_list[self.mode_index]
         text = game.font.render(output_string,True,game_constants.white)
-        screen.blit(text, [10,display_line])
-        display_line = display_line + 20
+        if (debug):
+           screen.blit(text, [10,display_line])
+           display_line = display_line + 20
 
         # display the time zoom
         output_string = "dt %f" % (sim.dt*game.dt_zoom_ratio)

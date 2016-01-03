@@ -12,7 +12,7 @@ class flight_computer(object):
         self.traj_display_dt_max = 2000
 
         # update guidance algorithm
-        [display.r_trajectory, display.v_trajectory] = self.update_guidance(
+        [display.r_trajectory, display.v_trajectory, display.r_iip_final, display.v_iip_final] = self.update_guidance(
                              vehicle.dry_mass + vehicle.dv_propellant_mass + vehicle.attitude_propellant_mass,
                              vehicle.r, vehicle.v, vehicle.period, vehicle.perigee, vehicle.altitude,
                              display.scale, display.center_x, display.center_y, display.viewing_angle,
@@ -99,5 +99,5 @@ class flight_computer(object):
            r = state[0]
            v = state[1]
 
-        return r_list, v_list
+        return r_list, v_list, r, v
 
