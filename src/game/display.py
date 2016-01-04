@@ -177,12 +177,22 @@ class display(object):
             iip_length = (numpy.linalg.norm(vehicle.r - self.r_iip_final )-200000)/2
             if numpy.linalg.norm(self.r_iip_final) > earth.radius:
                iip_length = self.iip_length_prev
-            if (vehicle.rp + vehicle.ra > 2*earth.radius):
+            if (vehicle.rp + vehicle.ra > 2*earth.radius and vehicle.rp - earth.radius > 0):
                ra_length = vehicle.ra-earth.radius
             else:
                ra_length = 0
             self.scale = max(1000,max(iip_length,alt_length,ra_length))/125
             self.iip_length_prev = iip_length
+
+        # throttle zoom scaling of the display such that
+        # zooming is not too crazy
+        if (self.prev_scale-self.scale < 0) and \
+           ( abs (self.prev_scale-self.scale) / self.scale > 0.01):
+               self.scale = self.prev_scale + 0.01 * self.scale
+        elif (self.prev_scale-self.scale < 0) and \
+           ( abs (self.prev_scale-self.scale) / self.scale > 0.1):
+               self.scale = self.prev_scale - 0.05 * self.scale
+
         self.prev_scale = self.scale
 
     def update_bodies(self,earth,vehicle):
@@ -330,8 +340,8 @@ class display(object):
             alt_horizon_11 = (250000/2)/self.scale
             alt_horizon_12 = (275000/2)/self.scale
             alt_horizon_13 = (300000/2)/self.scale
-            alt_sand = 2*(-1250/2)/self.scale
-            alt_tide = 2*(-1500/2)/self.scale
+            alt_sand = -1250/(self.scale+self.scale-8)
+            alt_tide = 2*(-1500/2)/(self.scale+self.scale-8)
             alt_tide_2 = 2*(-10000/2)/self.scale
             alt_tide_3 = 2*(-10500/2)/self.scale
             alt_tide_4 = 2*(-12000/2)/self.scale
@@ -472,7 +482,8 @@ class display(object):
             tide_4 = ( (infinity, horizon_display_y-alt_tide_6), (-infinity, horizon_display_y-alt_tide_6), (-infinity, horizon_display_y-alt_tide_7), (infinity, horizon_display_y - alt_tide_7) )
             sand = ( (infinity, horizon_display_y), (-infinity, horizon_display_y), (-infinity, horizon_display_y-alt_sand), (infinity, horizon_display_y - alt_sand) )
             tide_color = [255-min(255,max(0,int(alt*self.scale/125))), 255-min(255,max(0,int(alt*self.scale/125))), 155]
-            sand_color = [175-min(175,max(0,int(alt*self.scale/125))), 175-min(175,max(0,int(alt*self.scale/125))), min(155,max(0,int(alt*self.scale/125)))]
+            #sand_color = [175-min(175,max(0,int(alt*self.scale/125))), 175-min(175,max(0,int(alt*self.scale/125))), min(155,max(0,int(alt*self.scale/125)))]
+            sand_color = [175, 175, 0]
             pygame.draw.polygon(screen,tide_color,tide_4,0)
             pygame.draw.polygon(screen,tide_color,tide_3,0)
             pygame.draw.polygon(screen,tide_color,tide_2,0)

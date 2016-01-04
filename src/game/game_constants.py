@@ -21,6 +21,6 @@ sand=[175,175,30]
 
 # Set the height and width of the screen
 # approx golden ratio for height to width
-size=[650,400]
+size=[750,475]
 
 
